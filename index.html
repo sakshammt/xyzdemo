@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Audio Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        h1 span {
+            color: #e94560;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-box input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .search-box button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-box button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .search-box button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .thumbnail-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .thumbnail-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .placeholder-icon {
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        .track-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .track-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .track-author {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .audio-controls {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .progress-container {
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.8;
+        }
+
+        .control-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .play-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .play-btn:hover {
+            box-shadow: 0 5px 25px rgba(233, 69, 96, 0.5);
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-icon {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #e94560;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(233, 69, 96, 0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="player-card">
+            <h1>🎵 <span>YouTube</span> Audio</h1>
+            
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="urlInput" 
+                    placeholder="Paste YouTube URL here..."
+                >
+                <button id="loadBtn" onclick="loadAudio()">Play</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading audio...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div id="playerSection" class="hidden">
+                <div class="thumbnail-container">
+                    <img id="thumbnail" src="" alt="Thumbnail">
+                </div>
+
+                <div class="track-info">
+                    <div class="track-title" id="trackTitle">Track Title</div>
+                    <div class="track-author" id="trackAuthor">Artist</div>
+                </div>
+
+                <div class="audio-controls">
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar" onclick="seek(event)">
+                            <div class="progress" id="progress"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="currentTime">0:00</span>
+                            <span id="duration">0:00</span>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="skip(-10)">⏪</button>
+                        <button class="control-btn play-btn" id="playPauseBtn" onclick="togglePlay()">▶</button>
+                        <button class="control-btn" onclick="skip(10)">⏩</button>
+                    </div>
+
+                    <div class="volume-container">
+                        <span class="volume-icon">🔊</span>
+                        <input 
+                            type="range" 
+                            class="volume-slider" 
+                            id="volumeSlider" 
+                            min="0" 
+                            max="100" 
+                            value="80"
+                            oninput="changeVolume(this.value)"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <script>
+        const audio = document.getElementById('audio');
+        const API_URL = 'http://localhost:5000';
+
+        async function loadAudio() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                showError('Please enter a YouTube URL');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+            document.getElementById('playerSection').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_URL}/api/audio`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Set audio source
+                audio.src = data.url;
+                
+                // Update UI
+                document.getElementById('thumbnail').src = data.thumbnail;
+                document.getElementById('trackTitle').textContent = data.title;
+                document.getElementById('trackAuthor').textContent = data.author;
+                document.getElementById('playerSection').classList.remove('hidden');
+                
+                // Play audio
+                audio.play();
+                document.getElementById('playPauseBtn').textContent = '⏸';
+
+            } catch (error) {
+                showError(error.message || 'Failed to load audio');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                document.getElementById('playPauseBtn').textContent = '⏸';
+            } else {
+                audio.pause();
+                document.getElementById('playPauseBtn').textContent = '▶';
+            }
+        }
+
+        function skip(seconds) {
+            audio.currentTime += seconds;
+        }
+
+        function seek(event) {
+            const progressBar = document.getElementById('progressBar');
+            const percent = event.offsetX / progressBar.offsetWidth;
+            audio.currentTime = percent * audio.duration;
+        }
+
+        function changeVolume(value) {
+            audio.volume = value / 100;
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+            document.getElementById('loadBtn').disabled = show;
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+
+        // Audio events
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            document.getElementById('progress').style.width = `${percent}%`;
+            document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            document.getElementById('duration').textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            document.getElementById('playPauseBtn').textContent = '▶';
+        });
+
+        // Enter key to load
+        document.getElementById('urlInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadAudio();
+        });
+
+        // Set initial volume
+        audio.volume = 0.8;
+    </script>
+</body>
+</html>
